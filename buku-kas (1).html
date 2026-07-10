@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buku Kas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cover:#1F3B2C;
+    --cover-dark:#152A1F;
+    --paper:#EEF2E7;
+    --paper-line:#CFDAC4;
+    --paper-white:#FCFBF6;
+    --ink:#1C2430;
+    --ink-soft:#5B6570;
+    --debit:#A6342A;
+    --credit:#2F6B4F;
+    --brass:#B4903F;
+    --shadow: 0 14px 34px rgba(15,30,20,0.22);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans', sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(ellipse at top, #2c4a38 0%, #0f1d15 70%);
+    min-height:100vh;
+    padding:28px 14px 60px;
+  }
+  .book{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    max-width:560px;
+    margin:0 auto;
+    background:var(--paper);
+    border-radius:6px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+    padding-left:46px;
+    min-height:70vh;
+  }
+  .book::before{
+    content:"";
+    position:absolute;
+    left:0; top:0; bottom:0; width:46px;
+    background:linear-gradient(180deg, var(--cover) 0%, var(--cover-dark) 100%);
+  }
+  .book::after{
+    content:"";
+    position:absolute;
+    left:20px; top:0; bottom:0; width:6px;
+    background-image: radial-gradient(circle, var(--paper) 2.6px, transparent 2.7px);
+    background-size: 6px 34px;
+    background-repeat: repeat-y;
+    background-position: 0 22px;
+  }
+  .topbar{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    padding:20px 22px 14px;
+    border-bottom:1px solid var(--paper-line);
+  }
+  .topbar-brand{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.05rem;
+    letter-spacing:0.04em;
+    color:var(--cover);
+  }
+  .topbar-saldo{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  .page-content{
+    background-image: repeating-linear-gradient(to bottom, transparent 0 33px, var(--paper-line) 33px 34px);
+    padding: 26px 24px 34px;
+    flex:1 1 auto;
+  }
+  .screen-header{ margin-bottom:6px; }
+  .back-link{
+    background:none;
+    border:none;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.88rem;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:4px 0;
+  }
+  .back-link:hover{ color:var(--ink); }
+  h2.screen-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.5rem;
+    margin:6px 0 4px;
+    color:var(--ink);
+  }
+  .screen-desc, .step-label{
+    font-size:0.9rem;
+    color:var(--ink-soft);
+    margin:0 0 20px;
+  }
+  .step-label{
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    font-size:0.72rem;
+    font-weight:600;
+    color:var(--brass);
+  }
+  .field{ margin-bottom:18px; }
+  .field label{
+    display:block;
+    font-size:0.82rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    padding:12px 14px;
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1rem;
+    color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{
+    outline:2px solid var(--brass);
+    outline-offset:1px;
+  }
+  .field-error{
+    color:var(--debit);
+    font-size:0.8rem;
+    margin-top:6px;
+    display:none;
+  }
+  .field-error.show{ display:block; }
+  .primary-btn, .secondary-btn{
+    width:100%;
+    padding:14px 18px;
+    border-radius:4px;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    cursor:pointer;
+    margin-top:6px;
+    border:none;
+  }
+  .primary-btn{
+    background:var(--cover);
+    color:var(--paper-white);
+  }
+  .primary-btn:hover{ background:var(--cover-dark); }
+  .secondary-btn{
+    background:transparent;
+    color:var(--cover);
+    border:1px solid var(--cover);
+    margin-top:12px;
+  }
+  .secondary-btn:hover{ background:rgba(31,59,44,0.06); }
+
+  /* Main menu */
+  .stamp-wrap{ display:flex; justify-content:center; margin:18px 0 30px; }
+  .stamp{
+    width:168px; height:168px;
+    border-radius:50%;
+    border:3px double var(--credit);
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    transform:rotate(-6deg);
+    color:var(--credit);
+    text-align:center;
+    padding:10px;
+  }
+  .stamp-label{
+    font-size:0.7rem;
+    letter-spacing:0.18em;
+    font-weight:600;
+  }
+  .stamp-amount{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.28rem;
+    margin-top:6px;
+    word-break:break-word;
+  }
+  .menu-list{ display:flex; flex-direction:column; gap:12px; }
+  .menu-btn{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    width:100%;
+    text-align:left;
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-left:4px solid var(--brass);
+    border-radius:4px;
+    padding:16px 16px;
+    cursor:pointer;
+  }
+  .menu-btn:hover{ background:#fff; border-left-color:var(--cover); }
+  .menu-icon{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.3rem;
+    color:var(--cover);
+    width:28px; text-align:center;
+    flex-shrink:0;
+  }
+  .menu-text strong{
+    display:block;
+    font-size:1rem;
+    color:var(--ink);
+    font-family:'Fraunces', serif;
+    font-weight:600;
+  }
+  .menu-text small{
+    display:block;
+    font-size:0.8rem;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+
+  /* Confirmation */
+  .confirm-card{
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+    padding:18px 18px;
+    margin-bottom:8px;
+  }
+  .confirm-card p{ margin:4px 0; }
+  .confirm-date{ font-size:0.85rem; color:var(--ink-soft); }
+  .confirm-ket{ font-size:1rem; font-weight:600; }
+  .confirm-amount{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:1.15rem;
+    color:var(--debit);
+    font-weight:600;
+  }
+  .confirm-saldo{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.9rem;
+    color:var(--ink-soft);
+    border-top:1px dashed var(--paper-line);
+    padding-top:10px;
+    margin-top:10px !important;
+  }
+
+  /* Table */
+  .ledger-table-wrap{
+    overflow-x:auto;
+    background:var(--paper-white);
+    border:1px solid var(--paper-line);
+    border-radius:4px;
+  }
+  table.ledger{
+    width:100%;
+    border-collapse:collapse;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:0.82rem;
+    min-width:520px;
+  }
+  table.ledger th{
+    background:var(--cover);
+    color:var(--paper-white);
+    font-family:'IBM Plex Sans', sans-serif;
+    font-weight:600;
+    text-align:left;
+    padding:10px 10px;
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    white-space:nowrap;
+  }
+  table.ledger td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--paper-line);
+    white-space:nowrap;
+  }
+  table.ledger td.ket{ white-space:normal; min-width:130px; }
+  table.ledger td.num{ text-align:right; }
+  table.ledger tr.row-saldo td.num.nominal{ color:var(--ink-soft); }
+  table.ledger tr.row-pengeluaran td.num.nominal{ color:var(--debit); }
+  table.ledger td.saldo-col{ font-weight:600; }
+  .empty-state{
+    padding:32px 20px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+  }
+  .reset-link{
+    display:inline-block;
+    margin-top:16px;
+    font-size:0.78rem;
+    color:var(--ink-soft);
+    background:none;
+    border:none;
+    text-decoration:underline;
+    cursor:pointer;
+    padding:0;
+  }
+  .table-footer{ text-align:center; }
+
+  .watermark{
+    position:absolute;
+    right:5%;
+    bottom:64px;
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    color:var(--cover);
+    opacity:0.11;
+    transform:rotate(-7deg);
+    pointer-events:none;
+    user-select:none;
+    z-index:0;
+    white-space:nowrap;
+  }
+  .watermark-label{
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:clamp(0.62rem, 2.1vw, 0.9rem);
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  .watermark-name{
+    font-family:'Fraunces', serif;
+    font-style:italic;
+    font-weight:700;
+    font-size:clamp(2.2rem, 9vw, 3.6rem);
+    line-height:1;
+    margin-top:2px;
+  }
+  #app{ position:relative; z-index:1; display:flex; flex-direction:column; flex:1 1 auto; }
+  .site-footer{
+    position:relative;
+    z-index:1;
+    text-align:center;
+    font-family:'IBM Plex Sans', sans-serif;
+    font-size:0.7rem;
+    letter-spacing:0.02em;
+    color:var(--ink-soft);
+    background:var(--paper);
+    border-top:1px solid var(--paper-line);
+    padding:10px 14px 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="book">
+    <div class="watermark" aria-hidden="true">
+      <span class="watermark-label">made by</span>
+      <span class="watermark-name">DFF</span>
+    </div>
+    <div id="app"></div>
+    <div class="site-footer">&copy; 2026 DFF Company. All rights reserved.</div>
+  </div>
+
+<script>
+let rows = [];
+let screen = 'loading';
+let draft = { hari:'', tanggal:'', bulan:'', keterangan:'', nominal:0 };
+let ready = false;
+
+const HARI_LIST = ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'];
+const BULAN_LIST = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+function formatRupiah(n){
+  const v = Number(n)||0;
+  return 'Rp' + new Intl.NumberFormat('id-ID').format(v);
+}
+function digitsOnly(str){ return (str||'').replace(/[^0-9]/g,''); }
+function formatCurrencyInput(el){
+  const raw = digitsOnly(el.value);
+  el.dataset.raw = raw;
+  el.value = raw ? new Intl.NumberFormat('id-ID').format(Number(raw)) : '';
+}
+function getRawNumber(el){ return Number(el.dataset.raw || digitsOnly(el.value) || 0); }
+function currentSaldo(){
+  if(rows.length===0) return 0;
+  return rows[rows.length-1].saldoSetelah;
+}
+
+async function loadRows(){
+  try{
+    const res = await window.storage.get('rows', false);
+    rows = (res && res.value) ? JSON.parse(res.value) : [];
+  }catch(e){
+    rows = [];
+  }
+}
+async function saveRows(){
+  try{
+    const res = await window.storage.set('rows', JSON.stringify(rows), false);
+    if(!res){ console.error('Penyimpanan gagal (hasil kosong).'); }
+  }catch(e){
+    console.error('Gagal menyimpan data', e);
+  }
+}
+
+function goTo(s){
+  screen = s;
+  render();
+  window.scrollTo(0,0);
+}
+
+function showError(id, msg){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+function clearError(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.classList.remove('show');
+  el.textContent = '';
+}
+
+/* ---------- Isi Saldo ---------- */
+function submitIsiSaldo(){
+  const input = document.getElementById('isiSaldoInput');
+  const amount = getRawNumber(input);
+  if(!amount || amount<=0){
+    showError('isiSaldoError', 'Masukkan nominal lebih dari 0.');
+    return;
+  }
+  const newSaldo = currentSaldo() + amount;
+  rows.push({
+    tipe:'saldo',
+    hari:'', tanggal:'', bulan:'',
+    keterangan:'Isi Saldo',
+    nominal: amount,
+    saldoSetelah: newSaldo
+  });
+  saveRows();
+  goTo('main');
+}
+
+/* ---------- Pengeluaran step 1: tanggal ---------- */
+function submitTanggal(){
+  const hari = document.getElementById('hariSelect').value;
+  const tanggalRaw = document.getElementById('tanggalInput').value;
+  const bulan = document.getElementById('bulanSelect').value;
+  const tanggal = Number(digitsOnly(tanggalRaw));
+  clearError('tanggalError');
+  if(!hari || !bulan || !tanggal || tanggal<1 || tanggal>31){
+    showError('tanggalError', 'Lengkapi hari, tanggal (1-31), dan bulan.');
+    return;
+  }
+  draft.hari = hari;
+  draft.tanggal = tanggal;
+  draft.bulan = bulan;
+  goTo('pengeluaranKeterangan');
+}
+
+/* ---------- Pengeluaran step 2: keterangan ---------- */
+function submitKeterangan(){
+  const val = document.getElementById('keteranganInput').value.trim();
+  if(!val){
+    showError('keteranganError', 'Tuliskan keterangan pengeluaran.');
+    return;
+  }
+  draft.keterangan = val;
+  goTo('pengeluaranNominal');
+}
+
+/* ---------- Pengeluaran step 3: nominal ---------- */
+function submitNominal(){
+  const input = document.getElementById('nominalInput');
+  const amount = getRawNumber(input);
+  if(!amount || amount<=0){
+    showError('nominalError', 'Masukkan nominal lebih dari 0.');
+    return;
+  }
+  const newSaldo = currentSaldo() - amount;
+  draft.nominal = amount;
+  rows.push({
+    tipe:'pengeluaran',
+    hari:draft.hari, tanggal:draft.tanggal, bulan:draft.bulan,
+    keterangan:draft.keterangan,
+    nominal: amount,
+    saldoSetelah: newSaldo
+  });
+  saveRows();
+  goTo('pengeluaranSelesai');
+}
+
+async function resetData(){
+  if(!confirm('Hapus semua data buku kas? Tindakan ini tidak bisa dibatalkan.')) return;
+  rows = [];
+  await saveRows();
+  render();
+}
+
+/* ---------- Screens ---------- */
+function screenMain(){
+  return `
+    <div class="topbar">
+      <span class="topbar-brand">Buku Kas</span>
+    </div>
+    <div class="page-content">
+      <div class="stamp-wrap">
+        <div class="stamp">
+          <span class="stamp-label">SALDO</span>
+          <span class="stamp-amount">${formatRupiah(currentSaldo())}</span>
+        </div>
+      </div>
+      <div class="menu-list">
+        <button class="menu-btn" onclick="goTo('isiSaldo')">
+          <span class="menu-icon">+</span>
+          <span class="menu-text"><strong>Isi Saldo</strong><small>Tambah dana ke saldo</small></span>
+        </button>
+        <button class="menu-btn" onclick="goTo('pengeluaranTanggal')">
+          <span class="menu-icon">&minus;</span>
+          <span class="menu-text"><strong>Pengeluaran</strong><small>Catat dana keluar</small></span>
+        </button>
+        <button class="menu-btn" onclick="goTo('perincian')">
+          <span class="menu-icon">&equiv;</span>
+          <span class="menu-text"><strong>Perincian Dana</strong><small>Lihat seluruh riwayat</small></span>
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function screenIsiSaldo(){
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('main')">&lsaquo; Menu Utama</button></div>
+      <h2 class="screen-title">Isi Saldo</h2>
+      <p class="screen-desc">Masukkan jumlah dana yang ingin ditambahkan ke saldo.</p>
+      <div class="field">
+        <label>Nominal (Rp)</label>
+        <input id="isiSaldoInput" type="text" inputmode="numeric" placeholder="0"
+          oninput="formatCurrencyInput(this)"
+          onkeydown="if(event.key==='Enter') submitIsiSaldo()">
+        <div class="field-error" id="isiSaldoError"></div>
+      </div>
+      <button class="primary-btn" onclick="submitIsiSaldo()">Selesai</button>
+    </div>
+  `;
+}
+
+function screenPengeluaranTanggal(){
+  const hariOpts = HARI_LIST.map(h=>`<option value="${h}" ${draft.hari===h?'selected':''}>${h}</option>`).join('');
+  const bulanOpts = BULAN_LIST.map(b=>`<option value="${b}" ${draft.bulan===b?'selected':''}>${b}</option>`).join('');
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('main')">&lsaquo; Menu Utama</button></div>
+      <h2 class="screen-title">Pengeluaran</h2>
+      <p class="step-label">Langkah 1 dari 3 &middot; Tanggal</p>
+      <div class="field">
+        <label>Hari</label>
+        <select id="hariSelect"><option value="">Pilih hari</option>${hariOpts}</select>
+      </div>
+      <div class="field">
+        <label>Tanggal</label>
+        <input id="tanggalInput" type="text" inputmode="numeric" maxlength="2" placeholder="1-31" value="${draft.tanggal||''}"
+          oninput="this.value=digitsOnly(this.value)">
+      </div>
+      <div class="field">
+        <label>Bulan</label>
+        <select id="bulanSelect"><option value="">Pilih bulan</option>${bulanOpts}</select>
+      </div>
+      <div class="field-error" id="tanggalError"></div>
+      <button class="primary-btn" onclick="submitTanggal()">Masukkan Keterangan</button>
+    </div>
+  `;
+}
+
+function screenPengeluaranKeterangan(){
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('pengeluaranTanggal')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Pengeluaran</h2>
+      <p class="step-label">Langkah 2 dari 3 &middot; Keterangan</p>
+      <div class="field">
+        <label>Keterangan</label>
+        <input id="keteranganInput" type="text" placeholder="Contoh: Belanja dapur" maxlength="120" value="${draft.keterangan||''}"
+          onkeydown="if(event.key==='Enter') submitKeterangan()">
+        <div class="field-error" id="keteranganError"></div>
+      </div>
+      <button class="primary-btn" onclick="submitKeterangan()">Masukkan Nominal Pengeluaran</button>
+    </div>
+  `;
+}
+
+function screenPengeluaranNominal(){
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('pengeluaranKeterangan')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Pengeluaran</h2>
+      <p class="step-label">Langkah 3 dari 3 &middot; Nominal</p>
+      <div class="field">
+        <label>Nominal Pengeluaran (Rp)</label>
+        <input id="nominalInput" type="text" inputmode="numeric" placeholder="0"
+          oninput="formatCurrencyInput(this)"
+          onkeydown="if(event.key==='Enter') submitNominal()">
+        <div class="field-error" id="nominalError"></div>
+      </div>
+      <button class="primary-btn" onclick="submitNominal()">Simpan Pengeluaran</button>
+    </div>
+  `;
+}
+
+function screenPengeluaranSelesai(){
+  const last = rows[rows.length-1];
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <h2 class="screen-title">Pengeluaran Tersimpan</h2>
+      <div class="confirm-card">
+        <p class="confirm-date">${last.hari}, ${last.tanggal} ${last.bulan}</p>
+        <p class="confirm-ket">${last.keterangan}</p>
+        <p class="confirm-amount">&minus; ${formatRupiah(last.nominal)}</p>
+        <p class="confirm-saldo">Saldo sekarang: ${formatRupiah(currentSaldo())}</p>
+      </div>
+      <button class="primary-btn" onclick="goTo('main')">Kembali ke Halaman Utama</button>
+      <button class="secondary-btn" onclick="goTo('perincian')">Perincian Dana</button>
+    </div>
+  `;
+}
+
+function screenPerincian(){
+  let body;
+  if(rows.length===0){
+    body = `<div class="empty-state">Belum ada transaksi. Mulai dengan Isi Saldo atau Pengeluaran.</div>`;
+  }else{
+    const trs = rows.map((r,i)=>{
+      const cls = r.tipe==='saldo' ? 'row-saldo' : 'row-pengeluaran';
+      const tanggalCol = r.tipe==='saldo' ? '&mdash;' : `${r.hari}, ${r.tanggal} ${r.bulan}`;
+      const nominalCol = r.tipe==='saldo' ? '&mdash;' : ('&minus; ' + formatRupiah(r.nominal));
+      return `
+        <tr class="${cls}">
+          <td>${i+1}</td>
+          <td>${tanggalCol}</td>
+          <td class="ket">${r.keterangan}</td>
+          <td class="num nominal">${nominalCol}</td>
+          <td class="num saldo-col">${formatRupiah(r.saldoSetelah)}</td>
+        </tr>
+      `;
+    }).join('');
+    body = `
+      <div class="ledger-table-wrap">
+        <table class="ledger">
+          <thead><tr>
+            <th>No.</th><th>Hari/Tanggal</th><th>Keterangan</th><th>Nominal</th><th>Saldo</th>
+          </tr></thead>
+          <tbody>${trs}</tbody>
+        </table>
+      </div>
+    `;
+  }
+  return `
+    <div class="topbar"><span class="topbar-brand">Buku Kas</span><span class="topbar-saldo">${formatRupiah(currentSaldo())}</span></div>
+    <div class="page-content">
+      <div class="screen-header"><button class="back-link" onclick="goTo('main')">&lsaquo; Kembali</button></div>
+      <h2 class="screen-title">Perincian Dana</h2>
+      ${body}
+      <button class="primary-btn" onclick="goTo('main')" style="margin-top:18px;">Kembali</button>
+      <div class="table-footer">
+        ${rows.length>0 ? `<button class="reset-link" onclick="resetData()">Hapus semua data</button>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function screenLoading(){
+  return `<div class="page-content"><p class="screen-desc">Memuat data&hellip;</p></div>`;
+}
+
+function render(){
+  const app = document.getElementById('app');
+  if(!ready){ app.innerHTML = screenLoading(); return; }
+  switch(screen){
+    case 'main': app.innerHTML = screenMain(); break;
+    case 'isiSaldo': app.innerHTML = screenIsiSaldo(); break;
+    case 'pengeluaranTanggal': app.innerHTML = screenPengeluaranTanggal(); break;
+    case 'pengeluaranKeterangan': app.innerHTML = screenPengeluaranKeterangan(); break;
+    case 'pengeluaranNominal': app.innerHTML = screenPengeluaranNominal(); break;
+    case 'pengeluaranSelesai': app.innerHTML = screenPengeluaranSelesai(); break;
+    case 'perincian': app.innerHTML = screenPerincian(); break;
+    default: app.innerHTML = screenMain();
+  }
+}
+
+(async function init(){
+  render();
+  await loadRows();
+  ready = true;
+  screen = 'main';
+  render();
+})();
+</script>
+</body>
+</html>
